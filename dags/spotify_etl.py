@@ -18,9 +18,7 @@ def check_if_valid_data(df: pd.DataFrame) -> bool:
         return False 
 
     # Primary Key Check
-    if pd.Series(df['played_at']).is_unique:
-        pass
-    else:
+    if not pd.Series(df['played_at']).is_unique:
         raise Exception("Primary Key check is violated")
 
     # Check for nulls
@@ -44,14 +42,12 @@ def run_spotify_etl():
     USER_ID = ''
     TOKEN = ''
 
-      # Extract part of the ETL process
- 
     headers = {
         "Accept" : "application/json",
         "Content-Type" : "application/json",
         "Authorization" : "Bearer {token}".format(token=TOKEN)
     }
-    
+
     # Convert time to Unix timestamp in miliseconds      
     today = datetime.datetime.now()
     yesterday = today - datetime.timedelta(days=1)
@@ -67,13 +63,13 @@ def run_spotify_etl():
     played_at_list = []
     timestamps = []
 
-    # Extracting only the relevant bits of data from the json object      
+    # Extracting only the relevant bits of data from the json object
     for song in data["items"]:
         song_names.append(song["track"]["name"])
         artist_names.append(song["track"]["album"]["artists"][0]["name"])
         played_at_list.append(song["played_at"])
-        timestamps.append(song["played_at"][0:10])
-        
+        timestamps.append(song["played_at"][:10])
+
     # Prepare a dictionary in order to turn it into a pandas dataframe below       
     song_dict = {
         "song_name" : song_names,
@@ -83,7 +79,7 @@ def run_spotify_etl():
     }
 
     song_df = pd.DataFrame(song_dict, columns = ["song_name", "artist_name", "played_at", "timestamp"])
-    
+
     # Validate
     if check_if_valid_data(song_df):
         print("Data valid, proceed to Load stage")
